@@ -1,0 +1,3 @@
+exports = {
+	botToken: "yourtokenhere"
+};
