@@ -63,7 +63,7 @@ async function rawReactionHandler(event) {
 			return;
 		}
 		const role = message.guild.roles.get(roleData.id);
-		member.addRole(role, config.roleAddReason).catch(() => {});
+		member.addRole(role, config.roleAddReason).catch(() => { });
 	} else {
 		if (!roleData) return;
 		if (!roleData.removable) {
@@ -72,7 +72,7 @@ async function rawReactionHandler(event) {
 		}
 
 		const role = message.guild.roles.get(roleData.id);
-		member.removeRole(role, config.roleRemoveReason).catch(() => {});
+		member.removeRole(role, config.roleRemoveReason).catch(() => { });
 	}
 }
 
