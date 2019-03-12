@@ -6,7 +6,7 @@ const { commands } = require("./commands/");
 
 const client = new Discord.Client();
 
-function commandHandler(msg) {
+async function commandHandler(msg) {
 	if (msg.author.bot) return;
 	if (!msg.content.startsWith(config.prefix)) return;
 	// I don't want to have an empty command
@@ -23,8 +23,61 @@ function commandHandler(msg) {
 	command.run(msg, args);
 }
 
-client.on('message', commandHandler);
+async function editHandler(oldMsg, newMsg) {
+	if (oldMsg.author.bot) return;
+	const editChannel = client.channels.get(config.editChannel);
+	const embed = new Discord.RichEmbed();
+	embed.setAuthor(newMsg.author.tag, newMsg.author.avatarURL, "");
+	embed.setDescription(`Edited a [message](${newMsg.url}) in ${newMsg.channel}`);
+	embed.addField("Old message", "```" + oldMsg.cleanContent.replace("`", "'") + "```", true);
+	embed.addField("New message", "```" + newMsg.cleanContent.replace("`", "'") + "```", true);
+	editChannel.send(embed);
+}
 
+async function deleteHandler(delMsg) {
+	if (delMsg.author.bot) return;
+	const deletedChannel = client.channels.get(config.deletedChannel);
+	const embed = new Discord.RichEmbed();
+	embed.setAuthor(delMsg.author.tag, delMsg.author.avatarURL, "");
+	embed.setDescription(`Deleted a message from ${delMsg.channel}`);
+	embed.addField("Message", "```" + delMsg.cleanContent.replace("`", "'") + "```");
+	deletedChannel.send(embed);
+}
+
+async function rawReactionHandler(event) {
+	if (event.t !== "MESSAGE_REACTION_ADD" && event.t !== "MESSAGE_REACTION_REMOVE") return;
+	if (event.d.message_id !== config.roleMessage) return;
+
+	const channel = await client.channels.get(event.d.channel_id);
+	const message = await channel.fetchMessage(event.d.message_id);
+	const member = await message.guild.members.get(event.d.user_id);
+
+	const emojiName = event.d.emoji.id || event.d.emoji.name;
+
+	const roleData = config.roles[emojiName];
+	if (event.t === "MESSAGE_REACTION_ADD") {
+		if (!roleData) {
+			message.reactions.get(emojiName).remove(member);
+			return;
+		}
+		const role = message.guild.roles.get(roleData.id);
+		member.addRole(role, config.roleAddReason).catch(() => {});
+	} else {
+		if (!roleData) return;
+		if (!roleData.removable) {
+			console.log(`${member.user.tag} attempted to remove an unremovable role`);
+			return;
+		}
+
+		const role = message.guild.roles.get(roleData.id);
+		member.removeRole(role, config.roleRemoveReason).catch(() => {});
+	}
+}
+
+client.on('message', commandHandler);
+client.on('messageUpdate', editHandler);
+client.on('messageDelete', deleteHandler);
+client.on('raw', rawReactionHandler);
 client.on('ready', () => {
 	console.log("Bot is now online!");
 });
