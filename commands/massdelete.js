@@ -5,7 +5,7 @@ const Discord = require("discord.js");
  * @returns {?string} Returns nothing if argument is correct
  */
 function verifyArguments(arguments) {
-    if (arguments.length !== 1) return;
+    if (arguments.length !== 1) return "Incorrect number of arguments";
     const arg = arguments[0];
     if (isNaN(arg)) return "Please use a number";
     try {
@@ -42,6 +42,7 @@ async function massDelete(message, arguments) {
     if (error) {
         const errMessage = await message.channel.send(error);
         errMessage.delete(5000);
+        return;
     }
 
     await message.delete();

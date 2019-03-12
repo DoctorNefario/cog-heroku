@@ -6,6 +6,7 @@ const { commands } = require("./commands/");
 
 const client = new Discord.Client();
 
+/* Handlers */
 async function commandHandler(msg) {
 	if (msg.author.bot) return;
 	if (!msg.content.startsWith(config.prefix)) return;
@@ -51,6 +52,7 @@ async function rawReactionHandler(event) {
 	const channel = await client.channels.get(event.d.channel_id);
 	const message = await channel.fetchMessage(event.d.message_id);
 	const member = await message.guild.members.get(event.d.user_id);
+	if (member.user.bot) return;
 
 	const emojiName = event.d.emoji.id || event.d.emoji.name;
 
@@ -65,7 +67,7 @@ async function rawReactionHandler(event) {
 	} else {
 		if (!roleData) return;
 		if (!roleData.removable) {
-			console.log(`${member.user.tag} attempted to remove an unremovable role`);
+			client.channels.get(config.miscChannel).send(`${member.user} attempted to remove an unremovable role`);
 			return;
 		}
 
@@ -74,12 +76,34 @@ async function rawReactionHandler(event) {
 	}
 }
 
+async function readyHandler() {
+	console.log("Bot is now online!");
+
+	const roleChannel = client.channels.get(config.roleChannel);
+	const roleMessage = await roleChannel.fetchMessage(config.roleMessage);
+
+	if (roleMessage.content !== config.roleContent) {
+		await roleMessage.edit(config.roleContent);
+	}
+
+	for (r in config.roles) roleMessage.react(r);
+
+	roleMessage.reactions.forEach(async reaction => {
+		const role = config.roles[reaction.emoji.id || reaction.emoji.name];
+		if (role) {
+			reaction.users.forEach(user => user.addRole(role.id));
+		} else {
+			await reaction.fetchUsers();
+			reaction.users.forEach(u => reaction.remove(u));
+		}
+	});
+}
+
+/* Events */
 client.on('message', commandHandler);
 client.on('messageUpdate', editHandler);
 client.on('messageDelete', deleteHandler);
 client.on('raw', rawReactionHandler);
-client.on('ready', () => {
-	console.log("Bot is now online!");
-});
+client.on('ready', readyHandler);
 
 client.login(keys.botToken).catch(console.error);
