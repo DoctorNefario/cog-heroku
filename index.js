@@ -1,5 +1,4 @@
 const Discord = require("discord.js");
-const keys = require("./keys");
 const config = require("./config");
 
 const { commands } = require("./commands/");
@@ -106,4 +105,4 @@ client.on('messageDelete', deleteHandler);
 client.on('raw', rawReactionHandler);
 client.on('ready', readyHandler);
 
-client.login(keys.botToken).catch(console.error);
+client.login(process.env.DISCORD_TOKEN).catch(console.error);
