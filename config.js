@@ -13,6 +13,8 @@ exports.editChannel = "555093834229612585";
 exports.deletedChannel = "555093875203506206";
 exports.miscChannel = "555122990065385473";
 
+exports.guildID = "445448353464188929";
+
 exports.roles = {
     "✅": {
         id: "445519726760820739",

@@ -1,9 +1,10 @@
 const Discord = require("discord.js");
 const config = require("./config");
 
-const { commands } = require("./commands/");
 
 const client = new Discord.Client();
+
+client.commands = require("./commands/").commands;
 
 /* Handlers */
 async function commandHandler(msg) {
@@ -17,7 +18,7 @@ async function commandHandler(msg) {
 	// Take the first argument out and remove the prefix
 	const commandName = args.shift().substr(config.prefix.length);
 
-	const command = commands.get(commandName);
+	const command = client.commands.get(commandName);
 	if (command == null) return;
 
 	command.run(msg, args);
@@ -25,6 +26,7 @@ async function commandHandler(msg) {
 
 async function editHandler(oldMsg, newMsg) {
 	if (oldMsg.author.bot) return;
+	if (oldMsg.guild.id !== config.guildID) return;
 	const editChannel = client.channels.get(config.editChannel);
 	const embed = new Discord.RichEmbed();
 	embed.setAuthor(newMsg.author.tag, newMsg.author.avatarURL, "");
@@ -36,6 +38,7 @@ async function editHandler(oldMsg, newMsg) {
 
 async function deleteHandler(delMsg) {
 	if (delMsg.author.bot) return;
+	if (delMsg.guild.id !== config.guildID) return;
 	const deletedChannel = client.channels.get(config.deletedChannel);
 	const embed = new Discord.RichEmbed();
 	embed.setAuthor(delMsg.author.tag, delMsg.author.avatarURL, "");
@@ -47,6 +50,7 @@ async function deleteHandler(delMsg) {
 async function rawReactionHandler(event) {
 	if (event.t !== "MESSAGE_REACTION_ADD" && event.t !== "MESSAGE_REACTION_REMOVE") return;
 	if (event.d.message_id !== config.roleMessage) return;
+	if (event.d.guild_id !== config.guildID) return;
 
 	const channel = await client.channels.get(event.d.channel_id);
 	const message = await channel.fetchMessage(event.d.message_id);
