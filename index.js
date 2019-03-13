@@ -81,21 +81,26 @@ async function readyHandler() {
 	const roleChannel = client.channels.get(config.roleChannel);
 	const roleMessage = await roleChannel.fetchMessage(config.roleMessage);
 
-	if (roleMessage.content !== config.roleContent) {
-		await roleMessage.edit(config.roleContent);
-	}
 
 	for (r in config.roles) roleMessage.react(r);
 
+	let roleEmbedText = "";
+
 	roleMessage.reactions.forEach(async reaction => {
-		const role = config.roles[reaction.emoji.id || reaction.emoji.name];
+		const emoji = reaction.emoji.id || reaction.emoji.name;
+		const role = config.roles[emoji];
 		if (role) {
 			reaction.users.forEach(user => user.addRole(role.id));
+			roleEmbedText += `${reaction.emoji} to get role ${roleMessage.guild.roles.get(role.id)}\n`
 		} else {
 			await reaction.fetchUsers();
 			reaction.users.forEach(u => reaction.remove(u));
 		}
 	});
+
+	const embed = new Discord.RichEmbed();
+	embed.addField("Roles", roleEmbedText);
+	roleMessage.edit(config.roleContent, embed);
 }
 
 /* Events */

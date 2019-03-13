@@ -3,10 +3,11 @@ exports.prefix = "~";
 exports.roleChannel = "447311985311219712";
 exports.roleMessage = "447769228196446219";
 
-exports.roleContent = `This is a test role message`
+exports.roleContent = `This is a test role message
+Make sure to accept the server rules with ✅`
 
-exports.roleAddReason = "Requested by user";
-exports.roleRemoveReason = "Requested by user";
+exports.roleAddReason = null;
+exports.roleRemoveReason = null;
 
 exports.editChannel = "555093834229612585";
 exports.deletedChannel = "555093875203506206";
