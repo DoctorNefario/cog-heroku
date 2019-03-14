@@ -9,18 +9,16 @@ function verifyArguments(arguments) {
 }
 
 exports.info = {
-    name: "Mass delete",
-    description: "Deletes up to 50 messages from the current channel",
+    name: "Evaluate",
+    description: "Evaluates any given code (only usable by my creator)",
     arguments: [
         {
-            name: "Amount",
-            description: "The amount of messages to delete",
+            name: "Code",
+            description: "The code to evaluate",
             optional: false
         }
     ],
-    aliases: [
-        "purge"
-    ]
+    hidden: true
 }
 
 async function msgEval(message, args) {
