@@ -107,6 +107,14 @@ async function rawReactDeleteHandler(event) {
 	const delMsg = await deletedChannel.fetchMessage(event.d.message_id);
 	const deleteStaff = guild.members.get(event.d.user_id);
 
+	if (!deleteStaff.roles.has(config.staffID)) {
+		delMsg.reactions.get(event.d.emoji.id).remove(deleteStaff);
+		deletedChannel.send(`${deleteStaff}, you are not allowed to use that emoji`).then(msg => msg.delete(5000));
+		const miscChannel = client.channels.get(config.miscChannel);
+		miscChannel.send(`${deleteStaff} attempted to delete ${delMsg.author}'s message in ${deletedChannel}`)
+		return;
+	}
+
 	embed.setAuthor(delMsg.author.tag, delMsg.author.avatarURL, "");
 	embed.setDescription(`Deleted a message from ${delMsg.channel}`);
 	embed.addField("Message", "```" + delMsg.cleanContent.replace("`", "'") + "```");
