@@ -6,6 +6,13 @@ const client = new Discord.Client();
 
 client.commands = require("./commands/").commands;
 
+client.botDeletedMessages = [];
+
+client.botDelete = async (msg, waitTime = 0) => {
+	client.botDeletedMessages.push(msg.id);
+	return msg.delete(waitTime);
+}
+
 /* Handlers */
 async function commandHandler(msg) {
 	if (msg.author.bot) return;
@@ -39,6 +46,13 @@ async function editHandler(oldMsg, newMsg) {
 async function deleteHandler(delMsg) {
 	if (delMsg.author.bot) return;
 	if (delMsg.guild.id !== config.guildID) return;
+
+	const deletedIndex = client.botDeletedMessages.indexOf(delMsg.id);
+	if (deletedIndex >= 0) {
+		client.botDeletedMessages = client.botDeletedMessages.splice(deletedIndex, 1);
+		return;
+	}
+	
 	const deletedChannel = client.channels.get(config.deletedChannel);
 	const embed = new Discord.RichEmbed();
 	embed.setAuthor(delMsg.author.tag, delMsg.author.avatarURL, "");
@@ -79,6 +93,29 @@ async function rawReactionHandler(event) {
 	}
 }
 
+async function rawReactDeleteHandler(event) {
+	if (event.t !== "MESSAGE_REACTION_ADD") return;
+	if (event.d.guild_id !== config.guildID) return;
+	if ((event.d.emoji.id || event.d.emoji.name) !== config.deleteEmoji) return;
+
+	const guild = client.guilds.get(event.d.guild_id);
+	const deletedChannel = client.channels.get(event.d.channel_id);
+
+	const logChannel = client.channels.get(config.deletedChannel);
+	const embed = new Discord.RichEmbed();
+
+	const delMsg = await deletedChannel.fetchMessage(event.d.message_id);
+	const deleteStaff = guild.members.get(event.d.user_id);
+
+	embed.setAuthor(delMsg.author.tag, delMsg.author.avatarURL, "");
+	embed.setDescription(`Deleted a message from ${delMsg.channel}`);
+	embed.addField("Message", "```" + delMsg.cleanContent.replace("`", "'") + "```");
+	embed.addField("Deleted by:", deleteStaff);
+	logChannel.send(embed);
+
+	client.botDelete(delMsg);
+}
+
 async function readyHandler() {
 	console.log("Bot is now online!");
 
@@ -112,6 +149,7 @@ client.on('message', commandHandler);
 client.on('messageUpdate', editHandler);
 client.on('messageDelete', deleteHandler);
 client.on('raw', rawReactionHandler);
+client.on('raw', rawReactDeleteHandler);
 client.on('ready', readyHandler);
 
 client.login(process.env.DISCORD_TOKEN).catch(console.error);

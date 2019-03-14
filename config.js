@@ -14,6 +14,9 @@ exports.deletedChannel = "555093875203506206";
 exports.miscChannel = "555122990065385473";
 
 exports.guildID = "445448353464188929";
+exports.staffID = "555123288993431562";
+
+exports.deleteEmoji = "🚯";
 
 exports.roles = {
     "✅": {

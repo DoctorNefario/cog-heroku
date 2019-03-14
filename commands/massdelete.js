@@ -45,7 +45,13 @@ async function massDelete(message, arguments) {
         return;
     }
 
-    await message.delete();
+    if (!message.member.roles.has(message.client.config.staffID)) {
+        const errMessage = await message.channel.send("You cannot use that command");
+        errMessage.delete(5000);
+        return;
+    }
+
+    await client.botDelete(message);
 
     const deleteAmount = new Number(arguments[0]);
 
