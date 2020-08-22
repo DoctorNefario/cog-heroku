@@ -51,7 +51,7 @@ async function massDelete(message, arguments) {
         return;
     }
 
-    await client.botDelete(message);
+    await message.client.botDelete(message);
 
     const deleteAmount = new Number(arguments[0]);
 
